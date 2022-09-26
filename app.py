@@ -1,12 +1,15 @@
 
+from datetime import datetime
 from flask import Flask, render_template, redirect, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
+import os
 
 
 app = Flask(__name__)
 db = SQLAlchemy(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+app.config["SECRET_KEY"] = os.urandom(40)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -25,9 +28,10 @@ class User(db.Model, UserMixin):
 
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
+    username = db.Column(db.String(20), nullable=False)
     title = db.Column(db.String(20), nullable=False)
     content = db.Column(db.String(100), nullable=True)
+    created = db.Column(db.DateTime, default=datetime.now(), nullable=False)
 
 
 
@@ -64,7 +68,10 @@ def login():
 @app.route("/dashboard", methods=["GET"])
 @login_required
 def dashboard():
-    return render_template("dashboard.html")
+    username = current_user.username
+    notes = Note.query.filter_by(username=username)
+    notes_lst = [[note.title, note.content, note.created] for note in notes]
+    return render_template("dashboard.html", username=username, notes_lst=notes_lst)
 
 @app.route("/create-note", methods=["GET", "POST"])
 @login_required

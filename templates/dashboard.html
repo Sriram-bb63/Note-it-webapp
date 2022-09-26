@@ -16,6 +16,13 @@
         </ul>
     </header>
     <h1>Dashboard</h1>
-    <p>User is logged in currently</p>
+    <p>{{ username }} is logged in currently</p>
+    <hr>
+    {% for note in notes_lst %}
+        <p>{{ note[2] }}</p>
+        <h3>{{ note[0] }}</h3>
+        <p>{{ note[1] }}</p>
+        <hr>
+    {% endfor %}
 </body>
 </html>
