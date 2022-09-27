@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/static/main.js"></script>
     <title>Dashboard</title>
 </head>
 <body>
@@ -19,9 +20,12 @@
     <p>{{ username }} is logged in currently</p>
     <hr>
     {% for note in notes_lst %}
-        <p>{{ note[2] }}</p>
-        <h3>{{ note[0] }}</h3>
-        <p>{{ note[1] }}</p>
+        <ul>
+            <li><b>{{ note[1] }}</b></li>
+            <li>{{ note[2] }}</li>
+            <li>{{ note[3] }}</li>
+            <button onclick=deleteNote({{ note[0] }})>Delete post</button>
+        </ul>
         <hr>
     {% endfor %}
 </body>

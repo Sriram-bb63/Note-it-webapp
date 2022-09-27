@@ -1,14 +1,15 @@
-
-from datetime import datetime
-from flask import Flask, render_template, redirect, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 import os
+from datetime import datetime
+
+from flask import Flask, redirect, render_template, request
+from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
+from flask_sqlalchemy import SQLAlchemy
+
 
 
 app = Flask(__name__)
-db = SQLAlchemy(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+db = SQLAlchemy(app)
 app.config["SECRET_KEY"] = os.urandom(40)
 
 login_manager = LoginManager()
@@ -70,7 +71,7 @@ def login():
 def dashboard():
     username = current_user.username
     notes = Note.query.filter_by(username=username)
-    notes_lst = [[note.title, note.content, note.created] for note in notes]
+    notes_lst = [[note.id, note.title, note.content, note.created] for note in notes]
     return render_template("dashboard.html", username=username, notes_lst=notes_lst)
 
 @app.route("/create-note", methods=["GET", "POST"])
@@ -86,6 +87,18 @@ def create_note():
         print(">>> NEW NOTE CREATED")
         return redirect("/dashboard")
     return render_template("createnote.html")
+
+@app.route("/delete-note", methods=["GET", "POST"])
+@login_required
+def delete_note():
+    if request.method == "POST":
+        username = current_user.username
+        id = request.json.get("id")
+        Note.query.filter_by(id=id).delete()
+        db.session.commit()
+        print(">>> NOTE DELETED")
+        print(request.referrer)
+        return redirect(request.referrer)
 
 @app.route("/logout")
 @login_required
