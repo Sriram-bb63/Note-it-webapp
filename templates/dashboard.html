@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="/static/main.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/dashboard.css') }}">
     <title>Dashboard</title>
 </head>
 <body>
@@ -20,13 +21,27 @@
     <p>{{ username }} is logged in currently</p>
     <hr>
     {% for note in notes_lst %}
-        <ul>
+        <ul id="note-{{ note[0] }}">
             <li><b>{{ note[1] }}</b></li>
             <li>{{ note[2] }}</li>
             <li>{{ note[3] }}</li>
-            <button onclick=deleteNote({{ note[0] }})>Delete post</button>
+            <li>{{ note[4] }}</li>
+            <button onclick=deleteNote({{ note[0] }})>Delete note</button>
+            <!-- <a href="/edit-note"><button>Edit post</button></a> -->
+            <button onclick=openModal({{ note[0] }})>Edit note</button>
         </ul>
         <hr>
     {% endfor %}
+    <div class="modal" id="myModal">
+        <div class="modal-content">
+            <span class="close" id="closeModal" onclick=closeModal()>&times;</span>
+            <p class="note-id" id="note-id"></p>
+            <form action="" method="post">
+                <input type="text" name="title" id="title-field">
+                <input type="text" name="content" id="content-field">
+                <input type="submit" value="Done">
+            </form>
+        </div>
+    </div>
 </body>
 </html>

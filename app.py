@@ -1,7 +1,8 @@
+from email.policy import default
 import os
 from datetime import datetime
 
-from flask import Flask, redirect, render_template, request
+from flask import Flask, redirect, render_template, request, url_for
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
 
@@ -33,6 +34,7 @@ class Note(db.Model):
     title = db.Column(db.String(20), nullable=False)
     content = db.Column(db.String(100), nullable=True)
     created = db.Column(db.DateTime, default=datetime.now(), nullable=False)
+    lastedited = db.Column(db.DateTime, default=datetime.now(), nullable=False)
 
 
 
@@ -71,7 +73,7 @@ def login():
 def dashboard():
     username = current_user.username
     notes = Note.query.filter_by(username=username)
-    notes_lst = [[note.id, note.title, note.content, note.created] for note in notes]
+    notes_lst = [[note.id, note.title, note.content, note.created, note.lastedited] for note in notes]
     return render_template("dashboard.html", username=username, notes_lst=notes_lst)
 
 @app.route("/create-note", methods=["GET", "POST"])
@@ -92,7 +94,7 @@ def create_note():
 @login_required
 def delete_note():
     if request.method == "POST":
-        username = current_user.username
+        # username = current_user.username
         id = request.json.get("id")
         Note.query.filter_by(id=id).delete()
         db.session.commit()
