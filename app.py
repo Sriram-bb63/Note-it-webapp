@@ -68,7 +68,7 @@ def login():
                 return redirect("/dashboard")
     return render_template("login.html")
 
-@app.route("/dashboard", methods=["GET"])
+@app.route("/dashboard", methods=["GET", "POST"])
 @login_required
 def dashboard():
     username = current_user.username
@@ -94,12 +94,25 @@ def create_note():
 @login_required
 def delete_note():
     if request.method == "POST":
-        # username = current_user.username
         id = request.json.get("id")
         Note.query.filter_by(id=id).delete()
         db.session.commit()
         print(">>> NOTE DELETED")
-        print(request.referrer)
+        return redirect(request.referrer)
+
+@app.route("/edit-note", methods=["GET", "POST"])
+@login_required
+def edit_note():
+    if request.method == "POST":
+        id = request.form.get("id")
+        new_title = request.form.get("title")
+        new_content = request.form.get("content")
+        note = Note.query.filter_by(id=id).first()
+        note.title = new_title
+        note.content = new_content
+        note.lastedited = datetime.now()
+        db.session.commit()
+        print(">>> NOTE EDITED")
         return redirect(request.referrer)
 
 @app.route("/logout")

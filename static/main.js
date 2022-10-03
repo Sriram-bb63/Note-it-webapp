@@ -18,8 +18,10 @@ function openModal(i) {
     listElements = list.childNodes;
     title = listElements[1].textContent;
     content = listElements[3].textContent;
+    idField = document.getElementById("id-field");
     titleField = document.getElementById("title-field");
     contentField = document.getElementById("content-field");
+    idField.value = i;
     titleField.value = title;
     contentField.value = content;
 }
@@ -29,12 +31,23 @@ function closeModal() {
 }
 
 // function editNote(i) {
-//     var xhr_edit = new XMLHttpRequest();
-//     xhr_edit.open("POST", "/edit-post", true);
+//     console.log("Function called");
+//     titleField = document.getElementById("title-field");
+//     contentField = document.getElementById("content-field");
+//     newTitle = titleField.value;
+//     newContent = contentField.value;
+//     console.log("Form read");
+//     const xhr_edit = new XMLHttpRequest();
+//     console.log("XHR created");
+//     xhr_edit.open("POST", "/edit-note", true);
+//     console.log("XHR opened");
 //     xhr_edit.setRequestHeader("Content-Type", "application/json");
+//     console.log("XHR header");
 //     xhr_edit.send(JSON.stringify({
-//         "id": i
-//     }));
-//     console.log("Edit request sent");
-//     location.reload();
+//         "id": i,
+//         "title": newTitle,
+//         "content": newContent
+//     }))
+//     console.log("Edit req sent");
+//     // location.reload();
 // }
