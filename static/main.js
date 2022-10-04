@@ -9,8 +9,8 @@ function deleteNote(i) {
     location.reload();
 }
 
-function openModal(i) {
-    modal = document.getElementById("myModal");
+function openEditModal(i) {
+    modal = document.getElementById("editModal");
     modal.style.display = "block";
     var editTitle = document.getElementById("note-id");
     editTitle.textContent = "Note ID: ".concat(i);
@@ -26,7 +26,7 @@ function openModal(i) {
     contentField.value = content;
 }
 function closeModal() {
-    modal = document.getElementById("myModal");
+    modal = document.getElementById("editModal");
     modal.style.display = "none";
 }
 

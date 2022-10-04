@@ -28,11 +28,11 @@
             <li>{{ note[4] }}</li>
             <button onclick=deleteNote({{ note[0] }})>Delete note</button>
             <!-- <a href="/edit-note"><button>Edit post</button></a> -->
-            <button onclick=openModal({{ note[0] }})>Edit note</button>
+            <button onclick=openEditModal({{ note[0] }})>Edit note</button>
         </ul>
         <hr>
     {% endfor %}
-    <div class="modal" id="myModal">
+    <div class="modal" id="editModal">
         <div class="modal-content">
             <span class="close" id="closeModal" onclick=closeModal()>&times;</span>
             <p class="note-id" id="note-id"></p>

@@ -48,7 +48,7 @@ def register():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        new_user = User(username=username, password=password)
+        new_user = User(username=username, password=str(hash(password)))
         db.session.add(new_user)
         db.session.commit()
         print(">>> REGISTER SUCCESS")
@@ -62,7 +62,7 @@ def login():
         password = request.form.get("password")
         user = User.query.filter_by(username=username).first()
         if user:
-            if user.password == password:
+            if user.password == str(hash(password)):
                 login_user(user)
                 print(">>> LOGIN SUCCESS")
                 return redirect("/dashboard")
