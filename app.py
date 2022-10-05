@@ -1,16 +1,15 @@
-from email.policy import default
 import os
 from datetime import datetime
 
 from flask import Flask, redirect, render_template, request, url_for
+from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
-
-
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
 db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
 app.config["SECRET_KEY"] = os.urandom(40)
 
 login_manager = LoginManager()
@@ -33,8 +32,13 @@ class Note(db.Model):
     username = db.Column(db.String(20), nullable=False)
     title = db.Column(db.String(20), nullable=False)
     content = db.Column(db.String(100), nullable=True)
+    tag = db.Column(db.String(20), nullable=False)
     created = db.Column(db.DateTime, default=datetime.now(), nullable=False)
     lastedited = db.Column(db.DateTime, default=datetime.now(), nullable=False)
+
+class Tag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    tag = db.Column(db.String, nullable=False, unique=True)
 
 
 
@@ -48,7 +52,8 @@ def register():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        new_user = User(username=username, password=str(hash(password)))
+        hashed_password = bcrypt.generate_password_hash(password)
+        new_user = User(username=username, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         print(">>> REGISTER SUCCESS")
@@ -62,7 +67,7 @@ def login():
         password = request.form.get("password")
         user = User.query.filter_by(username=username).first()
         if user:
-            if user.password == str(hash(password)):
+            if bcrypt.check_password_hash(user.password, password) == True:
                 login_user(user)
                 print(">>> LOGIN SUCCESS")
                 return redirect("/dashboard")
@@ -73,7 +78,7 @@ def login():
 def dashboard():
     username = current_user.username
     notes = Note.query.filter_by(username=username)
-    notes_lst = [[note.id, note.title, note.content, note.created, note.lastedited] for note in notes]
+    notes_lst = [[note.id, note.title, note.content, note.tag, note.created, note.lastedited] for note in notes]
     return render_template("dashboard.html", username=username, notes_lst=notes_lst)
 
 @app.route("/create-note", methods=["GET", "POST"])
@@ -83,12 +88,14 @@ def create_note():
         username = current_user.username
         title = request.form.get("title")
         content = request.form.get("content")
-        new_note = Note(username=username, title=title, content=content)
+        tag = request.form.get("tag")
+        new_note = Note(username=username, title=title, content=content, tag=tag)
         db.session.add(new_note)
         db.session.commit()
         print(">>> NEW NOTE CREATED")
         return redirect("/dashboard")
-    return render_template("createnote.html")
+    tags = [tag.tag for tag in Tag.query.filter_by().all()]
+    return render_template("createnote.html", tags=tags)
 
 @app.route("/delete-note", methods=["GET", "POST"])
 @login_required
