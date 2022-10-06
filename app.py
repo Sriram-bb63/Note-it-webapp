@@ -18,16 +18,17 @@ login_manager.login_view = "login"
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return Users.query.get(int(user_id))
 
 
 
-class User(db.Model, UserMixin):
+class Users(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     password = db.Column(db.String(20), nullable=False)
+    created = db.Column(db.DateTime, default=datetime.now(), nullable=False)
 
-class Note(db.Model):
+class Notes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False)
     title = db.Column(db.String(20), nullable=False)
@@ -36,9 +37,8 @@ class Note(db.Model):
     created = db.Column(db.DateTime, default=datetime.now(), nullable=False)
     lastedited = db.Column(db.DateTime, default=datetime.now(), nullable=False)
 
-class Tag(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    tag = db.Column(db.String, nullable=False, unique=True)
+class Tags():
+    tags = ["General", "Home", "Office", "Random"]
 
 
 
@@ -53,7 +53,7 @@ def register():
         username = request.form.get("username")
         password = request.form.get("password")
         hashed_password = bcrypt.generate_password_hash(password)
-        new_user = User(username=username, password=hashed_password)
+        new_user = Users(username=username, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         print(">>> REGISTER SUCCESS")
@@ -65,7 +65,7 @@ def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        user = User.query.filter_by(username=username).first()
+        user = Users.query.filter_by(username=username).first()
         if user:
             if bcrypt.check_password_hash(user.password, password) == True:
                 login_user(user)
@@ -77,9 +77,11 @@ def login():
 @login_required
 def dashboard():
     username = current_user.username
-    notes = Note.query.filter_by(username=username)
-    notes_lst = [[note.id, note.title, note.content, note.tag, note.created, note.lastedited] for note in notes]
-    return render_template("dashboard.html", username=username, notes_lst=notes_lst)
+    notes = Notes.query.filter_by(username=username)
+    general_notes = [[note.id, note.title, note.content, note.tag, note.created, note.lastedited] for note in notes if note.tag == "General"]
+    home_notes = [[note.id, note.title, note.content, note.tag, note.created, note.lastedited] for note in notes if note.tag == "Home"]
+    office_notes = [[note.id, note.title, note.content, note.tag, note.created, note.lastedited] for note in notes if note.tag == "Office"]
+    return render_template("dashboard.html", username=username, general_notes=general_notes, home_notes=home_notes, office_notes=office_notes)
 
 @app.route("/create-note", methods=["GET", "POST"])
 @login_required
@@ -89,12 +91,12 @@ def create_note():
         title = request.form.get("title")
         content = request.form.get("content")
         tag = request.form.get("tag")
-        new_note = Note(username=username, title=title, content=content, tag=tag)
+        new_note = Notes(username=username, title=title, content=content, tag=tag)
         db.session.add(new_note)
         db.session.commit()
         print(">>> NEW NOTE CREATED")
         return redirect("/dashboard")
-    tags = [tag.tag for tag in Tag.query.filter_by().all()]
+    tags = Tags.tags
     return render_template("createnote.html", tags=tags)
 
 @app.route("/delete-note", methods=["GET", "POST"])
@@ -102,7 +104,7 @@ def create_note():
 def delete_note():
     if request.method == "POST":
         id = request.json.get("id")
-        Note.query.filter_by(id=id).delete()
+        Notes.query.filter_by(id=id).delete()
         db.session.commit()
         print(">>> NOTE DELETED")
         return redirect(request.referrer)
@@ -114,7 +116,7 @@ def edit_note():
         id = request.form.get("id")
         new_title = request.form.get("title")
         new_content = request.form.get("content")
-        note = Note.query.filter_by(id=id).first()
+        note = Notes.query.filter_by(id=id).first()
         note.title = new_title
         note.content = new_content
         note.lastedited = datetime.now()

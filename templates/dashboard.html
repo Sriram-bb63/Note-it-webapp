@@ -20,7 +20,9 @@
     <h1>Dashboard</h1>
     <p>{{ username }} is logged in currently</p>
     <hr>
-    {% for note in notes_lst %}
+    <hr>
+    <h2>General notes</h2>
+    {% for note in general_notes %}
         <ul id="note-{{ note[0] }}">
             <li><b>{{ note[1] }}</b></li>
             <li>{{ note[2] }}</li>
@@ -31,8 +33,39 @@
             <!-- <a href="/edit-note"><button>Edit post</button></a> -->
             <button onclick=openEditModal({{ note[0] }})>Edit note</button>
         </ul>
-        <hr>
     {% endfor %}
+    <hr>
+    <hr>
+    <h2>Home notes</h2>
+    {% for note in home_notes %}
+        <ul id="note-{{ note[0] }}">
+            <li><b>{{ note[1] }}</b></li>
+            <li>{{ note[2] }}</li>
+            <li>{{ note[3] }}</li>
+            <li>{{ note[4] }}</li>
+            <li>{{ note[5] }}</li>
+            <button onclick=deleteNote({{ note[0] }})>Delete note</button>
+            <!-- <a href="/edit-note"><button>Edit post</button></a> -->
+            <button onclick=openEditModal({{ note[0] }})>Edit note</button>
+        </ul>
+    {% endfor %}
+    <hr>
+    <hr>
+    <h2>Office notes</h2>
+    {% for note in office_notes %}
+        <ul id="note-{{ note[0] }}">
+            <li><b>{{ note[1] }}</b></li>
+            <li>{{ note[2] }}</li>
+            <li>{{ note[3] }}</li>
+            <li>{{ note[4] }}</li>
+            <li>{{ note[5] }}</li>
+            <button onclick=deleteNote({{ note[0] }})>Delete note</button>
+            <!-- <a href="/edit-note"><button>Edit post</button></a> -->
+            <button onclick=openEditModal({{ note[0] }})>Edit note</button>
+        </ul>
+    {% endfor %}
+    <hr>
+    <hr>
     <div class="modal" id="editModal">
         <div class="modal-content">
             <span class="close" id="closeModal" onclick=closeModal()>&times;</span>
