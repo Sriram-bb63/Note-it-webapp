@@ -1,10 +1,15 @@
 import os
 from datetime import datetime
+from random import randrange
 
 from flask import Flask, redirect, render_template, request, url_for
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, current_user, login_required, login_user, logout_user
 from flask_sqlalchemy import SQLAlchemy
+
+from mail import mail_otp
+
+
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
@@ -25,8 +30,10 @@ def load_user(user_id):
 class Users(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
+    mail = db.Column(db.String(50), nullable=True)
     password = db.Column(db.String(20), nullable=False)
     created = db.Column(db.DateTime, default=datetime.now(), nullable=False)
+    otp = db.Column(db.Integer, nullable=True)
 
 class Notes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -42,26 +49,9 @@ class Tags():
 
 
 
-@app.route("/", methods=["GET"])
-@app.route("/home", methods=["GET"])
+@app.route("/", methods=["GET", "POST"])
+@app.route("/login")
 def index():
-    return render_template("home.html")
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        hashed_password = bcrypt.generate_password_hash(password)
-        new_user = Users(username=username, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        print(">>> REGISTER SUCCESS")
-        return redirect("/login")
-    return render_template("register.html")
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -71,7 +61,52 @@ def login():
                 login_user(user)
                 print(">>> LOGIN SUCCESS")
                 return redirect("/dashboard")
-    return render_template("login.html")
+    return render_template("home.html")
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username")
+        mail = request.form.get("mail")
+        password = request.form.get("password")
+        hashed_password = bcrypt.generate_password_hash(password)
+        new_user = Users(username=username, mail=mail, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        print(">>> REGISTER SUCCESS")
+        return redirect("/login")
+    return render_template("register.html")
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        username = request.form.get("username")
+        user = Users.query.filter_by(username=username).first()
+        if user:
+            if user.mail != "":
+                otp = str(randrange(1000, 9999))
+                user.otp = otp
+                db.session.commit()
+                print(f">>> OTP {otp}")
+                return redirect(f"/otp-change-password/{username}")
+                # if mail_otp(user.mail, otp) == True:
+                #     print(">>> OTP sent {otp}")
+        else:
+            print(">>> User not found")
+    return render_template("forgot-password.html")
+
+@app.route("/otp-change-password/<username>", methods=["GET", "POST"])
+def otp_change_password(username):
+    if request.method == "POST":
+        otp = request.form.get("otp")
+        password = request.form.get("password")
+        user = Users.query.filter_by(username=username).first()
+        if user.otp == otp:
+            user.password = password
+            db.session.commit()
+            print(">>> Password changed")
+        return redirect("/login")        
+    return render_template("otp-change-password.html")
 
 @app.route("/dashboard", methods=["GET", "POST"])
 @login_required
